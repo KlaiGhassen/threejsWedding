@@ -1,0 +1,808 @@
+<html lang="en">
+  <head>
+    <link rel="icon" href="./favico.png" type="image/x-icon" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nouha & Aymen's Wedding</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        overflow: hidden;
+        font-family: "Arial", sans-serif;
+      }
+
+      canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+      }
+
+      #content {
+        z-index: 1;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+        padding-bottom: 4%;
+      }
+
+      .countdown {
+        font-size: 3em;
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .time-unit {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+        backdrop-filter: blur(5px);
+        color: #ac9292;
+        margin: 10px;
+      }
+
+      .number {
+        font-size: 2em;
+        font-weight: bold;
+      }
+
+      .label {
+        font-size: 1.2em;
+      }
+
+      /* Responsive Styles */
+      @media (max-width: 768px) {
+        .countdown {
+          font-size: 2em;
+          gap: 10px;
+        }
+
+        .time-unit {
+          padding: 15px;
+          font-size: 1.5em;
+        }
+
+        .number {
+          font-size: 1.5em;
+        }
+
+        .label {
+          font-size: 1em;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .countdown {
+          font-size: 1.5em;
+          gap: 5px;
+        }
+
+        .time-unit {
+          padding: 10px;
+          font-size: 1.2em;
+        }
+
+        .number {
+          font-size: 1.2em;
+        }
+
+        .label {
+          font-size: 0.9em;
+        }
+      }
+      .number {
+        font-size: 1.5em;
+        font-weight: bold;
+      }
+
+      .label {
+        font-size: 0.5em;
+        color: aliceblue;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <div class="countdown">
+        <div class="time-unit">
+          <span class="number" id="days">00</span>
+          <span class="label">Days</span>
+        </div>
+        <div class="time-unit">
+          <span class="number" id="hours">00</span>
+          <span class="label">Hours</span>
+        </div>
+        <div class="time-unit">
+          <span class="number" id="minutes">00</span>
+          <span class="label">Minutes</span>
+        </div>
+        <div class="time-unit">
+          <span class="number" id="seconds">00</span>
+          <span class="label">Seconds</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let mouseX = 0;
+      let mouseY = 0;
+      let targetX = 0;
+      let targetY = 0;
+      let windowHalfX = window.innerWidth / 2;
+      let windowHalfY = window.innerHeight / 2;
+
+      // Three.js Setup
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x1a1a1a);
+      document.body.appendChild(renderer.domElement);
+
+      function createText(text, position, font) {
+        // Get the current window width
+        const windowWidth = window.innerWidth;
+
+        // Dynamically adjust the font size based on window width
+        let fontSize = 0.8; // default size
+        if (windowWidth < 480) {
+          fontSize = 0.5; // smaller font size for small screens (phones)
+        } else if (windowWidth < 768) {
+          fontSize = 0.6; // medium font size for tablets
+        }
+
+        // Create the text geometry with dynamic font size
+        const textGeometry = new THREE.TextBufferGeometry(text, {
+          font: font, // Pass the loaded font here
+          size: fontSize,
+          height: 0.2,
+          curveSegments: 12,
+          bevelEnabled: true,
+          bevelThickness: 0.03,
+          bevelSize: 0.02,
+          bevelOffset: 0,
+          bevelSegments: 5,
+        });
+
+        const materials = [
+          new THREE.MeshPhongMaterial({ color: 0x7a5a5a, shininess: 100 }), // front
+          new THREE.MeshPhongMaterial({ color: 0x7a5a5a, shininess: 100 }), // side
+        ];
+
+        const textMesh = new THREE.Mesh(textGeometry, materials);
+        textMesh.position.set(position.x, position.y, position.z);
+
+        // Center the text
+        textGeometry.computeBoundingBox();
+        const centerOffset =
+          -0.5 *
+          (textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
+        textMesh.position.x = position.x + centerOffset;
+
+        return textMesh;
+      }
+      function createText2(text, position, font) {
+        // Get the current window width
+        const windowWidth = window.innerWidth;
+
+        // Dynamically adjust the font size based on window width
+        let fontSize = 0.8; // default size
+        if (windowWidth < 480) {
+          fontSize = 0.5; // smaller font size for small screens (phones)
+        } else if (windowWidth < 768) {
+          fontSize = 0.6; // medium font size for tablets
+        }
+
+        // Create the text geometry with dynamic font size
+        const textGeometry = new THREE.TextBufferGeometry(text, {
+          font: font, // Pass the loaded font here
+          size: fontSize,
+          height: 0.2,
+          curveSegments: 12,
+          bevelEnabled: true,
+          bevelThickness: 0.03,
+          bevelSize: 0.02,
+          bevelOffset: 0,
+          bevelSegments: 5,
+        });
+
+        const materials = [
+          new THREE.MeshPhongMaterial({ color: 0xC4B8B8, shininess: 100 }), // front
+          new THREE.MeshPhongMaterial({ color: 0xC4B8B8, shininess: 100 }), // side
+        ];
+
+        const textMesh = new THREE.Mesh(textGeometry, materials);
+        textMesh.position.set(position.x, position.y, position.z);
+
+        // Center the text
+        textGeometry.computeBoundingBox();
+        const centerOffset =
+          -0.5 *
+          (textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
+        textMesh.position.x = position.x + centerOffset;
+
+        return textMesh;
+      }
+
+      const loader = new THREE.FontLoader();
+
+      // Names Container
+      const namesGroup = new THREE.Group();
+      loader.load(
+        "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
+        function (font) {
+          // Create names with the loaded font
+          const textText = createText2(
+            "So thrilled for you two!",
+            { x: 0, y: 3.5, z: 0 },
+            font
+          );
+
+          const nouhaText = createText("Nouha", { x: -2, y: 2, z: 0 }, font);
+          const ampersandText = createText("&", { x: 0, y: 2, z: 0 }, font);
+          const aymenText = createText("Aymen", { x: 2, y: 2, z: 0 }, font);
+          namesGroup.add(nouhaText);
+          namesGroup.add(ampersandText);
+          namesGroup.add(aymenText);
+          scene.add(namesGroup);
+          scene.add(textText);
+        }
+      );
+      const canvas = document.createElement("canvas");
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext("2d");
+
+      // Draw heart
+      ctx.beginPath();
+      ctx.moveTo(32, 20);
+      ctx.bezierCurveTo(32, 18, 28, 12, 20, 12);
+      ctx.bezierCurveTo(10, 12, 8, 20, 8, 24);
+      ctx.bezierCurveTo(8, 32, 16, 40, 32, 52);
+      ctx.bezierCurveTo(48, 40, 56, 32, 56, 24);
+      ctx.bezierCurveTo(56, 20, 54, 12, 44, 12);
+      ctx.bezierCurveTo(36, 12, 32, 18, 32, 20);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+
+      const heartTexture = new THREE.CanvasTexture(canvas);
+
+      // Particles
+      const particlesGeometry = new THREE.BufferGeometry();
+      const particlesCount = 5000;
+      const posArray = new Float32Array(particlesCount * 3);
+
+      for (let i = 0; i < particlesCount * 3; i++) {
+        posArray[i] = (Math.random() - 0.5) * 50;
+      }
+
+      particlesGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(posArray, 3)
+      );
+      const particlesMaterial = new THREE.PointsMaterial({
+        size: 0.5,
+        map: heartTexture,
+        color: 0xe6dada,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+      });
+      const particlesMesh = new THREE.Points(
+        particlesGeometry,
+        particlesMaterial
+      );
+      scene.add(particlesMesh);
+
+      // Wedding Cake
+
+      function createWeddingCake() {
+        const cake = new THREE.Group();
+
+        // Enhanced color palette with more sophisticated wedding colors
+        const colors = {
+          ivory: 0xD1A7A7,
+          pearl: 0xA6A892,
+          gold: 0xdaa520,
+          blushPink: 0xffd1dc,
+          sage: 0xbcbfa3,
+          lavender: 0xe6e6fa,
+          silver: 0xe8e8e8,
+        };
+
+        // Enhanced layer configuration with more tiers and varying heights
+        const layers = [
+          { radius: 3.0, height: 0.8, y: -2.8, color: colors.ivory },
+          { radius: 2.4, height: 0.7, y: -1.8, color: colors.ivory },
+          { radius: 1.8, height: 0.7, y: -1, color: colors.ivory },
+          { radius: 1.3, height: 0.6, y: 0, color: colors.ivory },
+          { radius: 0.8, height: 0.5, y: 0.5, color: colors.ivory },
+        ];
+
+        // Create main cake layers with enhanced decorations
+        layers.forEach((layer, index) => {
+          // Main cake layer with improved materials
+          const geometry = new THREE.CylinderGeometry(
+            layer.radius,
+            layer.radius,
+            layer.height,
+            96, // Increased segments for smoother appearance
+            4, // Added height segments for better lighting
+            false
+          );
+
+          const material = new THREE.MeshPhongMaterial({
+            color: layer.color,
+            specular: colors.pearl,
+            shininess: 60,
+            flatShading: false,
+          });
+
+          const cylinder = new THREE.Mesh(geometry, material);
+          cylinder.position.y = layer.y;
+          cake.add(cylinder);
+
+          // Add decorative borders with pearl effect
+          addLayerBorders(cake, layer, colors);
+
+          // Add detailed piping patterns
+          addPipingDetails(cake, layer, colors);
+
+          // Add lace patterns
+          addLacePattern(cake, layer, colors);
+        });
+
+        // Add enhanced cake topper
+        const topper = createEnhancedTopper(colors);
+        topper.position.y =
+          layers[layers.length - 1].y + layers[layers.length - 1].height + 0.3;
+        cake.add(topper);
+
+        // Add cascading flowers with varied types
+        addCascadingFlowers(cake, layers, colors);
+
+        // Add ribbon drapes
+        addRibbonDrapes(cake, layers, colors);
+
+        return cake;
+      }
+
+      function addLayerBorders(cake, layer, colors) {
+        // Bottom border with pearl finish
+        const bottomBorder = createDecorativeBorder(
+          layer.radius + 0.05,
+          0.08,
+          colors.pearl
+        );
+        bottomBorder.position.y = layer.y;
+        cake.add(bottomBorder);
+
+        // Top border with gold accent
+        const topBorder = createDecorativeBorder(
+          layer.radius + 0.05,
+          0.08,
+          colors.gold
+        );
+        topBorder.position.y = layer.y + layer.height;
+        cake.add(topBorder);
+      }
+
+      function createDecorativeBorder(radius, thickness, color) {
+        const border = new THREE.Mesh(
+          new THREE.TorusGeometry(radius, thickness, 24, 128),
+          new THREE.MeshPhongMaterial({
+            color: color,
+            specular: 0xffffff,
+            shininess: 80,
+          })
+        );
+        border.rotation.x = Math.PI / 2;
+        return border;
+      }
+
+      function addPipingDetails(cake, layer, colors) {
+        const pipingCount = Math.floor(layer.radius * 30);
+        for (let i = 0; i < pipingCount; i++) {
+          const angle = (i / pipingCount) * Math.PI * 2;
+          const x = Math.cos(angle) * layer.radius;
+          const z = Math.sin(angle) * layer.radius;
+
+          // Create elegant swirl pattern
+          const swirl = createPipingSwirl(colors.pearl, layer.height * 0.6);
+          swirl.position.set(x, layer.y + layer.height * 0.2, z);
+          swirl.lookAt(new THREE.Vector3(0, swirl.position.y, 0));
+          cake.add(swirl);
+        }
+      }
+
+      function createPipingSwirl(color, height) {
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(0.02, height * 0.3, 0.02),
+          new THREE.Vector3(0, height * 0.6, 0),
+          new THREE.Vector3(-0.02, height, -0.02),
+        ]);
+
+        const geometry = new THREE.TubeGeometry(curve, 20, 0.015, 8, false);
+        return new THREE.Mesh(
+          geometry,
+          new THREE.MeshPhongMaterial({
+            color: color,
+            specular: 0xffffff,
+            shininess: 70,
+          })
+        );
+      }
+
+      function createEnhancedTopper(colors) {
+        const topper = new THREE.Group();
+
+        // Create more detailed intertwined hearts
+        const heart1 = createDetailedHeart(colors.blushPink);
+        heart1.position.x = 0;
+        heart1.rotation.y = 5;
+        heart1.scale.set(0.8, 0.8, 0.8);
+
+        const heart2 = createDetailedHeart(colors.lavender);
+        heart2.position.x = 0;
+        heart2.rotation.y = 0;
+        heart2.scale.set(0.8, 0.8, 0.8);
+
+        // Add golden arch connecting hearts
+        const arch = createGoldenArch(colors.gold);
+
+        topper.add(heart1, heart2, arch);
+        return topper;
+      }
+
+      function createDetailedHeart(color) {
+        const heart = new THREE.Shape();
+
+        // Create more detailed heart shape with smoother curves
+        heart.moveTo(0, 0);
+        heart.bezierCurveTo(0, 0.3, 0.6, 0.3, 0.6, 0);
+        heart.bezierCurveTo(0.6, -0.4, 0, -0.7, 0, -0.4);
+        heart.bezierCurveTo(0, -0.7, -0.6, -0.4, -0.6, 0);
+        heart.bezierCurveTo(-0.6, 0.3, 0, 0.3, 0, 0);
+
+        const geometry = new THREE.ExtrudeGeometry(heart, {
+          depth: 0.15,
+          bevelEnabled: true,
+          bevelThickness: 0.03,
+          bevelSize: 0.03,
+          bevelSegments: 5,
+        });
+
+        return new THREE.Mesh(
+          geometry,
+          new THREE.MeshPhongMaterial({
+            color: color,
+            specular: 0xffffff,
+            shininess: 120,
+          })
+        );
+      }
+
+      function createGoldenArch(color) {
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-0.2, 0, 0),
+          new THREE.Vector3(0, 0.3, 0),
+          new THREE.Vector3(0.2, 0, 0),
+        ]);
+
+        const geometry = new THREE.TubeGeometry(curve, 20, 0.02, 8, false);
+        return new THREE.Mesh(
+          geometry,
+          new THREE.MeshPhongMaterial({
+            color: color,
+            specular: 0xffffff,
+            shininess: 100,
+          })
+        );
+      }
+
+      function createEnhancedFlower(colors) {
+        const flower = new THREE.Group();
+
+        // Create more realistic petals
+        const petalCount = 8;
+        for (let i = 0; i < petalCount; i++) {
+          const petal = createDetailedPetal(colors.blushPink);
+          petal.rotation.z = (i / petalCount) * Math.PI * 2;
+          petal.rotation.y = Math.PI / 6;
+          flower.add(petal);
+        }
+
+        // Add flower center
+        const center = new THREE.Mesh(
+          new THREE.SphereGeometry(0.03, 12, 12),
+          new THREE.MeshPhongMaterial({
+            color: colors.gold,
+            specular: 0xffffff,
+            shininess: 90,
+          })
+        );
+        flower.add(center);
+
+        return flower;
+      }
+
+      function createDetailedPetal(color) {
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(0.08, 0.1, 0.02),
+          new THREE.Vector3(0.15, 0.15, 0),
+          new THREE.Vector3(0.2, 0.1, -0.02),
+        ]);
+
+        const geometry = new THREE.TubeGeometry(curve, 20, 0.02, 8, false);
+        return new THREE.Mesh(
+          geometry,
+          new THREE.MeshPhongMaterial({
+            color: color,
+            specular: 0xffffff,
+            shininess: 70,
+          })
+        );
+      }
+
+      function addCascadingFlowers(cake, layers, colors) {
+        const flowerPositions = generateSpiralPositions(layers);
+
+        flowerPositions.forEach((pos) => {
+          const flower = createEnhancedFlower(colors);
+          flower.position.copy(pos);
+          flower.rotation.set(
+            Math.random() * Math.PI,
+            Math.random() * Math.PI,
+            Math.random() * Math.PI
+          );
+          flower.scale.set(0.4, 0.4, 0.4);
+          cake.add(flower);
+        });
+      }
+
+      function generateSpiralPositions(layers) {
+        const positions = [];
+        const spiralPoints = 30; // Increased number of flowers
+
+        for (let i = 0; i < spiralPoints; i++) {
+          const t = i / spiralPoints;
+          const y = t * (layers[0].y + 0.5);
+          const angle = t * Math.PI * 6; // More rotations for denser arrangement
+          const layerIndex = Math.min(
+            Math.floor(t * layers.length),
+            layers.length - 1
+          );
+          const radius =
+            layers[layerIndex].radius * (0.8 + Math.random() * 0.4);
+
+          positions.push(
+            new THREE.Vector3(
+              Math.cos(angle) * radius,
+              y,
+              Math.sin(angle) * radius
+            )
+          );
+        }
+
+        return positions;
+      }
+
+      function addRibbonDrapes(cake, layers, colors) {
+        layers.forEach((layer, index) => {
+          if (index < layers.length - 1) {
+            const drapeCount = Math.floor(layer.radius * 8);
+
+            for (let i = 0; i < drapeCount; i++) {
+              const angle = (i / drapeCount) * Math.PI * 2;
+              const ribbon = createRibbonDrape(
+                layer,
+                layers[index + 1],
+                angle,
+                colors.sage
+              );
+              cake.add(ribbon);
+            }
+          }
+        });
+      }
+
+      function createRibbonDrape(lowerLayer, upperLayer, angle, color) {
+        const points = [];
+        const segments = 10;
+
+        for (let i = 0; i <= segments; i++) {
+          const t = i / segments;
+          const x = lerp(
+            Math.cos(angle) * lowerLayer.radius,
+            Math.cos(angle) * upperLayer.radius,
+            t
+          );
+          const z = lerp(
+            Math.sin(angle) * lowerLayer.radius,
+            Math.sin(angle) * upperLayer.radius,
+            t
+          );
+          const y = lerp(
+            lowerLayer.y + lowerLayer.height,
+            upperLayer.y,
+            t - Math.sin(t * Math.PI) * 0.2
+          );
+          points.push(new THREE.Vector3(x, y, z));
+        }
+
+        const curve = new THREE.CatmullRomCurve3(points);
+        const geometry = new THREE.TubeGeometry(curve, 20, 0.02, 8, false);
+
+        return new THREE.Mesh(
+          geometry,
+          new THREE.MeshPhongMaterial({
+            color: color,
+            specular: 0xffffff,
+            shininess: 70,
+          })
+        );
+      }
+
+      function lerp(start, end, t) {
+        return start * (1 - t) + end * t;
+      }
+
+      function addLacePattern(cake, layer, colors) {
+        const laceCount = Math.floor(layer.radius * 40);
+        const heightSegments = 4;
+
+        for (let h = 0; h < heightSegments; h++) {
+          const y = layer.y + (layer.height * (h + 0.5)) / heightSegments;
+
+          for (let i = 0; i < laceCount; i++) {
+            const angle = (i / laceCount) * Math.PI * 2;
+            const x = Math.cos(angle) * layer.radius;
+            const z = Math.sin(angle) * layer.radius;
+
+            const laceElement = createLaceElement(colors.pearl);
+            laceElement.position.set(x, y, z);
+            laceElement.lookAt(new THREE.Vector3(0, y, 0));
+            cake.add(laceElement);
+          }
+        }
+      }
+
+      function createLaceElement(color) {
+        const geometry = new THREE.TorusKnotGeometry(0.02, 0.005, 16, 8);
+        return new THREE.Mesh(
+          geometry,
+          new THREE.MeshPhongMaterial({
+            color: color,
+            specular: 0xffffff,
+            shininess: 80,
+          })
+        );
+      }
+
+      // Add to scene
+      const cake = createWeddingCake();
+      scene.add(cake);
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+      scene.add(ambientLight);
+
+      const spotLight = new THREE.SpotLight(0xffffff, 1);
+      spotLight.position.set(7, 5, 5);
+      spotLight.angle = Math.PI / 4;
+      spotLight.penumbra = 0.1;
+      spotLight.decay = 2;
+      spotLight.distance = 200;
+      scene.add(spotLight);
+
+      // Camera setup
+      camera.position.z = 8;
+      camera.position.y = 1;
+
+      // Mouse movement handler
+      document.addEventListener("mousemove", (event) => {
+        mouseX = (event.clientX - windowHalfX) / 300;
+        mouseY = (event.clientY - windowHalfY) / 300;
+      });
+
+      // Animation
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // Smooth camera movement
+        targetX = mouseX * 0.3;
+        targetY = mouseY * 0.2;
+        camera.position.x += (targetX - camera.position.x) * 0.05;
+        camera.position.y += (-targetY - camera.position.y) * 0.05;
+        camera.lookAt(scene.position);
+        // Rotate cake based on mouse position
+        cake.rotation.y += 0.005;
+        cake.rotation.y +=  0.0001;
+        cake.rotation.x += (targetY - cake.rotation.x) * 0.01;
+
+        // Animate names
+        namesGroup.rotation.y =
+          Math.sin(Date.now() * 0.001) * 0.1 + targetX * 0.2;
+        namesGroup.rotation.x =
+          Math.cos(Date.now() * 0.001) * 0.1 + targetY * 0.2;
+
+        // Animate particles
+        particlesMesh.rotation.y += 0.0005;
+        particlesMesh.rotation.x = targetY * 0.001;
+        particlesMesh.rotation.z = targetX * 0.001;
+
+        renderer.render(scene, camera);
+      }
+
+      // Countdown Timer
+      const weddingDate = new Date("2024-11-09T00:00:00");
+
+      function updateCountdown() {
+        const now = new Date();
+        const diff = weddingDate - now;
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor(
+          (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        );
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById("days").textContent = String(days).padStart(
+          2,
+          "0"
+        );
+        document.getElementById("hours").textContent = String(hours).padStart(
+          2,
+          "0"
+        );
+        document.getElementById("minutes").textContent = String(
+          minutes
+        ).padStart(2, "0");
+        document.getElementById("seconds").textContent = String(
+          seconds
+        ).padStart(2, "0");
+      }
+
+      setInterval(updateCountdown, 1000);
+      updateCountdown();
+
+      // Handle window resize
+      window.addEventListener("resize", () => {
+        windowHalfX = window.innerWidth / 2;
+        windowHalfY = window.innerHeight / 2;
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // Start animation
+      animate();
+    </script>
+  </body>
+</html>
