@@ -338,125 +338,262 @@
       .music-playing {
         animation: pulse 1s infinite;
       }
+      /* Loading screen styles */
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+
+      .loading-content {
+        text-align: center;
+      }
+
+      .loading-logo {
+        width: 100px;
+        height: 100px;
+        position: relative;
+        margin-bottom: 20px;
+      }
+
+      .loading-circle {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 4px solid transparent;
+        border-top-color: #ff0000;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .loading-circle:nth-child(2) {
+        border-top-color: transparent;
+        border-right-color: #ff0000;
+        animation-delay: 0.2s;
+      }
+
+      .loading-circle:nth-child(3) {
+        border-top-color: transparent;
+        border-bottom-color: #ff0000;
+        animation-delay: 0.4s;
+      }
+
+      .loading-text {
+        color: #ff0000;
+        font-size: 24px;
+        font-weight: bold;
+        margin-top: 20px;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s ease forwards 0.5s;
+      }
+
+      .loading-progress {
+        width: 200px;
+        height: 4px;
+        background: #333;
+        border-radius: 2px;
+        margin-top: 20px;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        width: 0%;
+        height: 100%;
+        background: #ff0000;
+        transition: width 0.5s ease;
+      }
+
+      .loading-icons {
+        margin-top: 30px;
+        display: flex;
+        gap: 20px;
+      }
+
+      .loading-icons i {
+        color: #333;
+        font-size: 24px;
+        animation: iconFadeIn 0.3s ease forwards;
+        opacity: 0;
+      }
+
+      .main-content {
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes iconFadeIn {
+        to {
+          opacity: 1;
+          color: #ff0000;
+        }
+      }
+
+      /* Hide scrollbar during loading */
+      body.loading {
+        overflow: hidden;
+      }
     </style>
   </head>
-  <body>
-    <!-- Audio elements -->
-    <audio id="background-music" loop>
-      <source src="/backgroundounds.mp3" type="audio/mp3" />
-    </audio>
-    <audio id="hover-sound">
-      <source
-        src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"
-        type="audio/mp3"
-      />
-    </audio>
-    <audio id="click-sound">
-      <source
-        src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"
-        type="audio/mp3"
-      />
-    </audio>
-    <audio id="section-reveal-sound">
-      <source
-        src="https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3"
-        type="audio/mp3"
-      />
-    </audio>
-
-    <!-- Add music control button -->
-    <div class="music-control" id="musicControl">
-      <i class="fas fa-music music-playing"></i>
-      <span>Music: ON</span>
+  <body class="loading">
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+      <div class="loading-content">
+        <div class="loading-logo">
+          <div class="loading-circle"></div>
+          <div class="loading-circle"></div>
+          <div class="loading-circle"></div>
+        </div>
+        <div class="loading-text">ESPRIT Mobile</div>
+        <div class="loading-progress">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="loading-icons">
+          <i class="fab fa-apple" style="animation-delay: 0.3s"></i>
+          <i class="fab fa-android" style="animation-delay: 0.5s"></i>
+          <i class="fab fa-swift" style="animation-delay: 0.7s"></i>
+          <i class="fab fa-kotlin" style="animation-delay: 0.9s"></i>
+        </div>
+      </div>
     </div>
-    <div id="particles-js"></div>
-    <div class="phone-container">
-      <div class="phone">
-        <div class="notch"></div>
-        <div class="screen">
-          <div class="status-bar">
-            <div class="status-left">
-              <div class="signal-bars">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-              </div>
-              <i class="fas fa-wifi" style="color: #ff0000"></i>
-              <span class="time" id="current-time">4:20</span>
-            </div>
-            <div class="status-right">
-              <i class="fas fa-location-dot" style="color: #ff0000"></i>
-              <div class="battery">
-                <div class="battery-icon">
-                  <div class="battery-level"></div>
+
+    <!-- Wrap previous content in main-content div -->
+    <div class="main-content" id="mainContent">
+      <!-- Audio elements -->
+      <audio id="background-music" loop>
+        <source src="/backgroundounds.mp3" type="audio/mp3" />
+      </audio>
+      <audio id="hover-sound">
+        <source
+          src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"
+          type="audio/mp3"
+        />
+      </audio>
+      <audio id="click-sound">
+        <source
+          src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"
+          type="audio/mp3"
+        />
+      </audio>
+      <audio id="section-reveal-sound">
+        <source
+          src="https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3"
+          type="audio/mp3"
+        />
+      </audio>
+
+      <!-- Add music control button -->
+      <div class="music-control" id="musicControl">
+        <i class="fas fa-music music-playing"></i>
+        <span>Music: ON</span>
+      </div>
+      <div id="particles-js"></div>
+      <div class="phone-container">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="status-bar">
+              <div class="status-left">
+                <div class="signal-bars">
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
                 </div>
-                <span>100%</span>
+                <i class="fas fa-wifi" style="color: #ff0000"></i>
+                <span class="time" id="current-time">4:20</span>
+              </div>
+              <div class="status-right">
+                <i class="fas fa-location-dot" style="color: #ff0000"></i>
+                <div class="battery">
+                  <div class="battery-icon">
+                    <div class="battery-level"></div>
+                  </div>
+                  <span>100%</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="header">
-            <h1 class="title">ESPRIT Mobile</h1>
-            <p class="subtitle">Department of Excellence</p>
-          </div>
+            <div class="header">
+              <h1 class="title">ESPRIT Mobile</h1>
+              <p class="subtitle">Department of Excellence</p>
+            </div>
 
-          <div class="tech-logos">
-            <i class="fab fa-apple tech-logo"></i>
-            <i class="fab fa-android tech-logo"></i>
-            <i class="fab fa-swift tech-logo"></i>
-            <i class="fab fa-kotlin tech-logo"></i>
-          </div>
+            <div class="tech-logos">
+              <i class="fab fa-apple tech-logo"></i>
+              <i class="fab fa-android tech-logo"></i>
+              <i class="fab fa-swift tech-logo"></i>
+              <i class="fab fa-kotlin tech-logo"></i>
+            </div>
 
-          <div class="section">
-            <h2 class="section-title">Overview</h2>
-            <div class="feature">
-              <h3>Mobile Development</h3>
-              <p>
-                Leading the future of mobile innovation through comprehensive
-                education and hands-on experience.
-              </p>
+            <div class="section">
+              <h2 class="section-title">Overview</h2>
+              <div class="feature">
+                <h3>Mobile Development</h3>
+                <p>
+                  Leading the future of mobile innovation through comprehensive
+                  education and hands-on experience.
+                </p>
+              </div>
+              <div class="feature">
+                <h3>Our Vision</h3>
+                <p>
+                  Creating the next generation of mobile developers with
+                  cutting-edge skills and industry knowledge.
+                </p>
+              </div>
             </div>
-            <div class="feature">
-              <h3>Our Vision</h3>
-              <p>
-                Creating the next generation of mobile developers with
-                cutting-edge skills and industry knowledge.
-              </p>
-            </div>
-          </div>
 
-          <div class="section">
-            <h2 class="section-title">Technologies</h2>
-            <div class="feature">
-              <h3>iOS Development</h3>
-              <p>Swift & SwiftUI mastery for native iOS applications</p>
+            <div class="section">
+              <h2 class="section-title">Technologies</h2>
+              <div class="feature">
+                <h3>iOS Development</h3>
+                <p>Swift & SwiftUI mastery for native iOS applications</p>
+              </div>
+              <div class="feature">
+                <h3>Android Development</h3>
+                <p>Kotlin & Jetpack Compose for modern Android apps</p>
+              </div>
+              <div class="feature">
+                <h3>Cross-Platform</h3>
+                <p>Flutter for multi-platform development</p>
+              </div>
             </div>
-            <div class="feature">
-              <h3>Android Development</h3>
-              <p>Kotlin & Jetpack Compose for modern Android apps</p>
-            </div>
-            <div class="feature">
-              <h3>Cross-Platform</h3>
-              <p>Flutter for multi-platform development</p>
-            </div>
-          </div>
 
-          <div class="section">
-            <h2 class="section-title">Career Opportunities</h2>
-            <div class="feature">
-              <h3>Industry Partners</h3>
-              <p>
-                Partnerships with leading tech companies for internships and job
-                placements
-              </p>
-            </div>
-            <div class="feature">
-              <h3>Professional Growth</h3>
-              <p>
-                Mentorship programs and career guidance for continuous
-                development
-              </p>
+            <div class="section">
+              <h2 class="section-title">Career Opportunities</h2>
+              <div class="feature">
+                <h3>Industry Partners</h3>
+                <p>
+                  Partnerships with leading tech companies for internships and
+                  job placements
+                </p>
+              </div>
+              <div class="feature">
+                <h3>Professional Growth</h3>
+                <p>
+                  Mentorship programs and career guidance for continuous
+                  development
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -465,9 +602,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
     <script>
-      // Music control functionality
-
-      // Sound effect functions with improved handling
       function playSound(audioId) {
         const audio = document.getElementById(audioId);
         if (audio) {
@@ -490,12 +624,44 @@
           }
         }
       }
-
-      // Wait for the DOM to be fully loaded
       document.addEventListener("DOMContentLoaded", () => {
+        const loadingScreen = document.getElementById("loadingScreen");
+        const mainContent = document.getElementById("mainContent");
+        const progressBar = document.getElementById("progressBar");
+        const backgroundMusic = document.getElementById("background-music");
+
+        let progress = 0;
+        const totalDuration = 3000; // 3 seconds for loading
+        const intervalDuration = 20;
+
+        // Simulate loading progress
+        const loadingInterval = setInterval(() => {
+          progress += (intervalDuration / totalDuration) * 100;
+          progressBar.style.width = `${Math.min(progress, 100)}%`;
+
+          if (progress >= 100) {
+            clearInterval(loadingInterval);
+            setTimeout(() => {
+              loadingScreen.style.opacity = "0";
+              mainContent.style.opacity = "1";
+              document.body.classList.remove("loading");
+
+              setTimeout(() => {
+                loadingScreen.style.display = "none";
+                // Initialize background music after loading
+                if (backgroundMusic) {
+                  backgroundMusic.volume = 0.1;
+                  backgroundMusic.play().catch((error) => {
+                    console.log("Music playback failed:", error);
+                  });
+                }
+              }, 500);
+            }, 500);
+          }
+        }, intervalDuration);
+
         // Add hover sound to features
 
-        const backgroundMusic = document.getElementById("background-music");
         const musicControl = document.getElementById("musicControl");
         const musicIcon = musicControl.querySelector("i");
         const musicText = musicControl.querySelector("span");
