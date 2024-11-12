@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="./favico.png" type="image/x-icon" />
+    <link rel="icon" href="./favico.webp" type="image/x-icon" />
     <title>ESPRIT Mobile Department</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
@@ -289,9 +289,86 @@
       .phone {
         animation: glow 3s infinite;
       }
+      /* Add new styles for the music control */
+      .music-control {
+        position: fixed;
+        top: 10px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 8px 12px;
+        border-radius: 20px;
+        border: 1px solid #ff0000;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .music-control:hover {
+        transform: scale(1.05);
+        background: rgba(40, 40, 40, 0.8);
+      }
+
+      .music-control i {
+        color: #ff0000;
+        font-size: 16px;
+      }
+
+      .music-control span {
+        color: #ff0000;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      /* Add animation for the music icon */
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .music-playing {
+        animation: pulse 1s infinite;
+      }
     </style>
   </head>
   <body>
+    <!-- Audio elements -->
+    <audio id="background-music" loop>
+      <source src="/backgroundounds.mp3" type="audio/mp3" />
+    </audio>
+    <audio id="hover-sound">
+      <source
+        src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"
+        type="audio/mp3"
+      />
+    </audio>
+    <audio id="click-sound">
+      <source
+        src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"
+        type="audio/mp3"
+      />
+    </audio>
+    <audio id="section-reveal-sound">
+      <source
+        src="https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3"
+        type="audio/mp3"
+      />
+    </audio>
+
+    <!-- Add music control button -->
+    <div class="music-control" id="musicControl">
+      <i class="fas fa-music music-playing"></i>
+      <span>Music: ON</span>
+    </div>
     <div id="particles-js"></div>
     <div class="phone-container">
       <div class="phone">
@@ -388,6 +465,145 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
     <script>
+      // Music control functionality
+
+      // Sound effect functions with improved handling
+      function playSound(audioId) {
+        const audio = document.getElementById(audioId);
+        if (audio) {
+          // Reset the audio to start
+          audio.currentTime = 0;
+          // Set volume to a pleasant level
+          audio.volume = 0.1;
+
+          // Play the sound with better error handling
+          const playPromise = audio.play();
+
+          if (playPromise !== undefined) {
+            playPromise
+              .then((_) => {
+                // Playback started successfully
+              })
+              .catch((error) => {
+                console.log("Audio playback failed:", error);
+              });
+          }
+        }
+      }
+
+      // Wait for the DOM to be fully loaded
+      document.addEventListener("DOMContentLoaded", () => {
+        // Add hover sound to features
+
+        const backgroundMusic = document.getElementById("background-music");
+        const musicControl = document.getElementById("musicControl");
+        const musicIcon = musicControl.querySelector("i");
+        const musicText = musicControl.querySelector("span");
+        let isMusicPlaying = false;
+
+        // Function to handle music toggle
+        function toggleMusic() {
+          if (isMusicPlaying) {
+            backgroundMusic.pause();
+            musicIcon.classList.remove("music-playing");
+            musicIcon.classList.remove("fa-music");
+            musicIcon.classList.add("fa-volume-mute");
+            musicText.textContent = "Music: OFF";
+          } else {
+            backgroundMusic.play().catch((error) => {
+              console.log("Music playback failed:", error);
+            });
+            musicIcon.classList.add("music-playing");
+            musicIcon.classList.add("fa-music");
+            musicIcon.classList.remove("fa-volume-mute");
+            musicText.textContent = "Music: ON";
+          }
+          isMusicPlaying = !isMusicPlaying;
+        }
+
+        // Initialize music on first click
+        function initializeAudio() {
+          backgroundMusic.volume = 0.1; // Set initial volume to 10%
+          toggleMusic();
+          document.removeEventListener("click", initializeAudio);
+        }
+
+        // Add click listener for music control
+        musicControl.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleMusic();
+        });
+
+        // Add initial click listener to start music (browser autoplay policy)
+        document.addEventListener("click", initializeAudio, { once: true });
+
+        // Previous sound effect functions
+        function playSound(audioId) {
+          const audio = document.getElementById(audioId);
+          if (audio) {
+            audio.currentTime = 0;
+            audio.volume = 0.1;
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+              playPromise.catch((error) => {
+                console.log("Audio playback failed:", error);
+              });
+            }
+          }
+        }
+
+        document.querySelectorAll(".feature").forEach((feature) => {
+          feature.addEventListener("mouseenter", () =>
+            playSound("hover-sound")
+          );
+        });
+
+        // Add hover sound to tech logos
+        document.querySelectorAll(".tech-logo").forEach((logo) => {
+          logo.addEventListener("mouseenter", () => playSound("hover-sound"));
+        });
+
+        // Add click sound to features
+        document.querySelectorAll(".feature").forEach((feature) => {
+          feature.addEventListener("click", () => playSound("click-sound"));
+        });
+
+        // Add click sound to tech logos
+        document.querySelectorAll(".tech-logo").forEach((logo) => {
+          logo.addEventListener("click", () => playSound("click-sound"));
+        });
+
+        // Modified Intersection Observer to include sound
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                playSound("section-reveal-sound");
+              }
+            });
+          },
+          {
+            threshold: 0.1,
+          }
+        );
+
+        // Observe all sections
+        document.querySelectorAll(".section").forEach((section) => {
+          observer.observe(section);
+        });
+
+        // Add phone interaction sounds
+        const phone = document.querySelector(".phone");
+        phone.addEventListener("mouseenter", () => playSound("hover-sound"));
+        phone.addEventListener("click", () => playSound("click-sound"));
+
+        // Preload audio files
+        const audioElements = document.querySelectorAll("audio");
+        audioElements.forEach((audio) => {
+          audio.load();
+        });
+      });
       // Particles.js configuration
       particlesJS("particles-js", {
         particles: {
