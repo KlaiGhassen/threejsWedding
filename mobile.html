@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESPRIT Mobile Department</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .phone-container {
+            width: 300px;
+            height: 600px;
+            position: relative;
+            perspective: 2000px;
+            margin: auto;
+            z-index: 1;
+        }
+
+        .phone {
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            border-radius: 30px;
+            position: relative;
+            border: 3px solid #333;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.3);
+            overflow: hidden;
+            transform: rotateY(15deg) rotateX(5deg);
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+
+        .phone:hover {
+            transform: rotateY(0deg) rotateX(0deg);
+        }
+
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 25px;
+            background: #000;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            z-index: 2;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            overflow-y: auto;
+            padding: 40px 15px 20px;
+            scrollbar-width: none;
+        }
+
+        .screen::-webkit-scrollbar {
+            display: none;
+        }
+
+        .status-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(to bottom, #000 60%, transparent);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 3;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .signal-bars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .bar {
+            width: 3px;
+            height: 8px;
+            background: #ff0000;
+            border-radius: 1px;
+        }
+
+        .time {
+            color: #ff0000;
+            font-weight: bold;
+        }
+
+        .battery {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #ff0000;
+        }
+
+        .battery-icon {
+            width: 20px;
+            height: 10px;
+            border: 1px solid #ff0000;
+            border-radius: 2px;
+            position: relative;
+            padding: 1px;
+        }
+
+        .battery-level {
+            height: 100%;
+            width: 100%;
+            background: #ff0000;
+            border-radius: 1px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+        }
+
+        .title {
+            color: #ff0000;
+            font-size: 20px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .tech-logos {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .tech-logo {
+            width: 30px;
+            height: 30px;
+            color: #ff0000;
+            transition: transform 0.3s ease;
+        }
+
+        .tech-logo:hover {
+            transform: scale(1.2);
+        }
+
+        .section {
+            margin-bottom: 25px;
+            background: rgba(40, 40, 40, 0.9);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid #ff0000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-title {
+            color: #ff0000;
+            font-size: 16px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .feature {
+            margin-bottom: 12px;
+            padding: 8px;
+            background: rgba(20, 20, 20, 0.8);
+            border-radius: 8px;
+            border: 1px solid #333;
+            transform: scale(0.95);
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            transform: scale(1);
+            border-color: #ff0000;
+        }
+
+        .feature:last-child {
+            margin-bottom: 0;
+        }
+
+        .feature h3 {
+            color: #ff0000;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .feature p {
+            color: #aaa;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .home-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: #ff0000;
+            border-radius: 2px;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 50px rgba(255, 0, 0, 0.3); }
+            50% { box-shadow: 0 0 70px rgba(255, 0, 0, 0.4); }
+            100% { box-shadow: 0 0 50px rgba(255, 0, 0, 0.3); }
+        }
+
+        .phone {
+            animation: glow 3s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div class="phone-container">
+        <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+                <div class="status-bar">
+                    <div class="status-left">
+                        <div class="signal-bars">
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                        </div>
+                        <i class="fas fa-wifi" style="color: #ff0000;"></i>
+                        <span class="time" id="current-time">4:20</span>
+                    </div>
+                    <div class="status-right">
+                        <i class="fas fa-location-dot" style="color: #ff0000;"></i>
+                        <div class="battery">
+                            <div class="battery-icon">
+                                <div class="battery-level"></div>
+                            </div>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header">
+                    <h1 class="title">ESPRIT Mobile</h1>
+                    <p class="subtitle">Department of Excellence</p>
+                </div>
+
+                <div class="tech-logos">
+                    <i class="fab fa-apple tech-logo"></i>
+                    <i class="fab fa-android tech-logo"></i>
+                    <i class="fab fa-react tech-logo"></i>
+                    <i class="fab fa-swift tech-logo"></i>
+                    <i class="fab fa-kotlin tech-logo"></i>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">Overview</h2>
+                    <div class="feature">
+                        <h3>Mobile Development</h3>
+                        <p>Leading the future of mobile innovation through comprehensive education and hands-on experience.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Our Vision</h3>
+                        <p>Creating the next generation of mobile developers with cutting-edge skills and industry knowledge.</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">Technologies</h2>
+                    <div class="feature">
+                        <h3>iOS Development</h3>
+                        <p>Swift & SwiftUI mastery for native iOS applications</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Android Development</h3>
+                        <p>Kotlin & Jetpack Compose for modern Android apps</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Cross-Platform</h3>
+                        <p>React Native & Flutter for multi-platform development</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">Career Opportunities</h2>
+                    <div class="feature">
+                        <h3>Industry Partners</h3>
+                        <p>Partnerships with leading tech companies for internships and job placements</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Professional Growth</h3>
+                        <p>Mentorship programs and career guidance for continuous development</p>
+                    </div>
+                </div>
+
+                <div class="home-indicator"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Particles.js configuration
+        particlesJS('particles-js', {
+            particles: {
+                number: {
+                    value: 80,
+                    density: {
+                        enable: true,
+                        value_area: 800
+                    }
+                },
+                color: {
+                    value: '#ff0000'
+                },
+                shape: {
+                    type: 'circle'
+                },
+                opacity: {
+                    value: 0.5,
+                    random: true
+                },
+                size: {
+                    value: 3,
+                    random: true
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#ff0000',
+                    opacity: 0.2,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: 'none',
+                    random: true,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: {
+                        enable: true,
+                        mode: 'repulse'
+                    },
+                    onclick: {
+                        enable: true,
+                        mode: 'push'
+                    },
+                    resize: true
+                }
+            }
+        });
+
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('current-time').textContent = `${hours}:${minutes}`;
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        // Observe all sections
+        document.querySelectorAll('.section').forEach((section) => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>
